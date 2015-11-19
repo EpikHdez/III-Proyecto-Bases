@@ -8,7 +8,8 @@ CREATE TABLE TipoAhorro (
 ID INT IDENTITY(1, 1),
 Nombre VARCHAR(100),
 TasaDeInteres FLOAT,
-MontoMultaPorSaldoMinimo FLOAT,
+MontoMultaPorSaldoMinimo INT,
+CostoServicioPorMes INT,
 PRIMARY KEY (ID)
 );
 GO
@@ -34,7 +35,8 @@ MontoOriginal FLOAT,
 Saldo FLOAT,
 InteresAcumuladoDelMes FLOAT,
 DiaCorte INT,
-SaldoMinimo FLOAT
+SaldoMinimo FLOAT,
+FechaConstitucion DATE,
 PRIMARY KEY (ID),
 FOREIGN KEY (FK_TipoAhorro) REFERENCES TipoAhorro (ID)
 );
