@@ -21,7 +21,7 @@ BEGIN
 		DECLARE @tipoAhorroT TABLE (ID INT IDENTITY(1, 1), Nombre VARCHAR(100), TasaInteres FLOAT,
 									Multa INT, CostoPorMes INT);
 		DECLARE @ahorroT TABLE (ID INT IDENTITY(1, 1), FK_TipoAhorro INT, MontoOriginal FLOAT, 
-								Saldo FLOAT, DiaCorte INT, FechaConstitucion DATE);
+								Saldo FLOAT, SaldoMinimo FLOAT, DiaCorte INT, FechaConstitucion DATE);
 		DECLARE @movSaldoT TABLE (ID INT IDENTITY(1, 1), FK_Ahorro INT, FK_TipoMovimientoSaldo INT,
 									Monto INT, Fecha DATE);
 
@@ -53,10 +53,12 @@ BEGIN
 		BEGIN
 			SELECT @nombreTA = TA.Nombre FROM @tipoAhorroT TA WHERE TA.ID = @lowA;
 
-			INSERT INTO @ahorroT (FK_TipoAhorro, MontoOriginal, Saldo, DiaCorte, FechaConstitucion)
+			INSERT INTO @ahorroT (FK_TipoAhorro, MontoOriginal, Saldo, SaldoMinimo, DiaCorte, 
+								FechaConstitucion)
 			SELECT @lowA,
 					AH.value('@Saldo', 'FLOAT'),
 					AH.value('@Saldo', 'FLOAT'),
+					AH.value('@SaldoMinimo', 'FLOAT'),
 					AH.value('@DiaCorte', 'INT'),
 					AH.value('@FechaConstitucion', 'DATE')
 			FROM @document.nodes('ROOT/TipoAhorro/Ahorro') AS Ahorro(AH)
