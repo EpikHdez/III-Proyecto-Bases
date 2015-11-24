@@ -8,10 +8,10 @@ BEGIN
 	BEGIN TRY
 		DECLARE @fechaActual DATE, @fechaFinal DATE;
 
-		SELECT @fechaActual = MIN(MS.PostDate) FROM dbo.MovimientoSaldo MS;
+		SELECT @fechaActual = MIN(AH.FechaConstitucion) FROM dbo.Ahorros AH;
 		SET @fechaFinal = DATEADD(DAY, @pCantidadDias, @fechaActual);
 
-		WHILE @fechaActual < @fechaFinal
+		WHILE @fechaActual <= @fechaFinal
 		BEGIN
 			EXEC AHSP_ProcesoDiario @fechaActual;
 			SET @fechaActual = DATEADD(DAY, 1, @fechaActual);

@@ -42,6 +42,20 @@ FOREIGN KEY (FK_TipoAhorro) REFERENCES TipoAhorro (ID)
 );
 GO
 
+CREATE TABLE EstadoCuenda (
+ID INT IDENTITY(1, 1),
+FK_Ahorro INT,
+SaldoInicialReal FLOAT,
+SumaCreditos FLOAT,
+CantidadCreditos INT,
+SumaDebitos FLOAT,
+CantidadDebitos INT,
+SaldoFinalReal FLOAT,
+PRIMARY KEY (ID),
+FOREIGN KEY (FK_Ahorro) REFERENCES Ahorros (ID)
+);
+GO
+
 CREATE TABLE SaldoMinimoPorMes (
 ID INT IDENTITY(1, 1),
 FK_Ahorro INT,
