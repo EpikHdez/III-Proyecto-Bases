@@ -19,12 +19,12 @@ BEGIN
 			(MS.FK_TipoMovimientoSaldo > 1) AND
 			(MS.PostDate = @pFecha);
 
-	IF @sumCreditos = NULL
+	IF (@sumCreditos is NULL)
 		SET @sumCreditos = 0.0;
 
-	IF @sumDebitos = NULL
+	IF (@sumDebitos is NULL)
 		SET @sumDebitos = 0.0;
-
+			
 	SET @result = (@sumCreditos - @sumDebitos);
 
 	RETURN @result;

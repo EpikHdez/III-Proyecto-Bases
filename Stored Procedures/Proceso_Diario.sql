@@ -20,7 +20,8 @@ BEGIN
 			--Actualizar el valor del interes acumulado en el ahorro con su respectivo movimiento
 			--del día
 			UPDATE AH
-			SET AH.InteresAcumuladoDelMes = (AH.InteresAcumuladoDelMes + MI.Monto)
+			SET AH.InteresAcumuladoDelMes = (AH.InteresAcumuladoDelMes + MI.Monto),
+				AH.Saldo = (AH.Saldo + (dbo.AHFN_AgregadoAlSaldo(AH.ID, @pFechaProceso)))
 			FROM dbo.Ahorros AH INNER JOIN dbo.MovimientoInteres MI
 			ON MI.FK_Ahorro = AH.ID
 			WHERE MI.PostDate = @pFechaProceso;
@@ -83,33 +84,36 @@ BEGIN
 				SMPM.Activo = 0
 			FROM dbo.SaldoMinimoPorMes SMPM INNER JOIN dbo.Ahorros AH
 			ON SMPM.FK_Ahorro = AH.ID
-			WHERE (AH.DiaCorte = DAY(@pFechaProceso)) AND (SMPM.Activo = 1);
+			WHERE (@pFechaProceso > AH.FechaConstitucion) AND (AH.DiaCorte = DAY(@pFechaProceso)) AND 
+					(SMPM.Activo = 1);
 
-			----Actualizar el estado de cuenta de ese mes con los valores correspondientes
-			--UPDATE EC
-			--SET EC.FechaFin = @pFechaProceso,
-			--	EC.SumaCreditos = dbo.AHFN_ObtenerSumaCreditos(AH.ID, EC.FechaInicio, @pFechaProceso),
-			--	EC.CantidadCreditos = dbo.AHFN_ObtenerCantidadCreditos(AH.ID, EC.FechaInicio, @pFechaProceso),
-			--	EC.SumaDebitos = dbo.AHFN_ObtenerSumaDebitos(AH.ID, EC.FechaInicio, @pFechaProceso),
-			--	EC.CantidadDebitos = dbo.AHFN_ObtenerCantidadDebitos(AH.ID, EC.FechaInicio, @pFechaProceso),
-			--	EC.SaldoFinalReal = AH.Saldo
-			--	EC.Activo = 0
-			--FROM dbo.EstadoCuenta EC INNER JOIN dbo.Ahorros AH
-			--ON EC.FK_Ahorro = AH.ID
-			--WHERE (AH.DiaCorte = DAY(@pFechaProceso)) AND (EC.Activo = 1);
+			--Actualizar el estado de cuenta de ese mes con los valores correspondientes
+			UPDATE EC
+			SET EC.FechaFin = @pFechaProceso,
+				EC.SumaCreditos = dbo.AHFN_ObtenerSumaCreditos(AH.ID, EC.FechaInicio, @pFechaProceso),
+				EC.CantidadCreditos = dbo.AHFN_ObtenerCantidadCreditos(AH.ID, EC.FechaInicio, @pFechaProceso),
+				EC.SumaDebitos = dbo.AHFN_ObtenerSumaDebitos(AH.ID, EC.FechaInicio, @pFechaProceso),
+				EC.CantidadDebitos = dbo.AHFN_ObtenerCantidadDebitos(AH.ID, EC.FechaInicio, @pFechaProceso),
+				EC.SaldoFinalReal = AH.Saldo,
+				EC.Activo = 0
+			FROM dbo.EstadoCuenta EC INNER JOIN dbo.Ahorros AH
+			ON EC.FK_Ahorro = AH.ID
+			WHERE (@pFechaProceso > AH.FechaConstitucion) AND (AH.DiaCorte = DAY(@pFechaProceso)) AND 
+					(EC.Activo = 1);
 
 			--Crear un nuevo registro en saldo minímo para el siguiente mes de 
 			INSERT INTO dbo.SaldoMinimoPorMes (FK_Ahorro, FechaInicio, FechaFin, SaldoMinimo)
 			SELECT AH.ID, @pFechaProceso, NULL, AH.Saldo
 			FROM dbo.Ahorros AH
-			WHERE AH.DiaCorte = DAY(@pFechaProceso);
+			WHERE (@pFechaProceso > AH.FechaConstitucion) AND (AH.DiaCorte = DAY(@pFechaProceso));
 
-			----Crear un nuevo registro en estado de cuenta para el siguiente mes de los ahorros
-			--INSERT INTO dbo.EstadoCuenta (FK_Ahorro, FechaInicio, FechaFin, SumaCreditos,
-			--							CantidadCreditos, SumaDebitos, CantidadDebitos, SaldoFinalReal)
-			--SELECT AH.ID, @pFechaProceso, NULL, 0.0, 0, 0.0, 0, 0.0
-			--FROM dbo.Ahorros AH
-			--WHERE AH.DiaCorte = DAY(@pFechaProceso);
+			--Crear un nuevo registro en estado de cuenta para el siguiente mes de los ahorros
+			INSERT INTO dbo.EstadoCuenta (FK_Ahorro, FechaInicio, FechaFin, SaldoInicialReal, 
+										SumaCreditos, CantidadCreditos, SumaDebitos, CantidadDebitos, 
+										SaldoFinalReal)
+			SELECT AH.ID, @pFechaProceso, NULL, AH.Saldo, 0.0, 0, 0.0, 0, 0.0
+			FROM dbo.Ahorros AH
+			WHERE (@pFechaProceso > AH.FechaConstitucion) AND (AH.DiaCorte = DAY(@pFechaProceso));
 		COMMIT TRAN Proceso;
 
 		RETURN 1;
