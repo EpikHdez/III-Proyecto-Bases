@@ -104,6 +104,16 @@ BEGIN
 					AH.FechaConstitucion
 			FROM @ahorrosT AH;
 
+			INSERT INTO dbo.SaldoMinimoPorMes (FK_Ahorro, FechaInicio, FechaFin, SaldoMinimo)
+			SELECT AH.ID, AH.FechaConstitucion, NULL, AH.SaldoMinimo
+			FROM @ahorrosT AH;
+
+			INSERT INTO dbo.EstadoCuenta (FK_Ahorro, FechaInicio, FechaFin, SaldoInicialReal,
+										SumaCreditos, CantidadCreditos, SumaDebitos, CantidadDebitos,
+										SaldoFinalReal)
+			SELECT AH.ID, AH.FechaConstitucion, NULL, AH.Saldo, 0.0, 0, 0.0, 0, 0.0
+			FROM @ahorrosT AH;
+
 			INSERT INTO dbo.MovimientoSaldo (FK_Ahorro, FK_TipoMovimientoSaldo, PostIn, PostBy,
 											PostDate, Monto)
 			SELECT MS.FK_Ahorro, MS.FK_TipoMovimientoSaldo, 'localhost', 'localhost',
